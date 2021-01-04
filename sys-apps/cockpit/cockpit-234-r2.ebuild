@@ -66,7 +66,6 @@ src_configure() {
 		$(use_enable debug)
 		$(use_enable pcp)
 		$(use_enable doc)
-		"--disable-dependency-tracking "
 		"--with-pamdir=/lib64/security "
 		"--with-cockpit-user=cockpit-ws "
 		"--with-cockpit-ws-instance-user=cockpit-wsinstance "

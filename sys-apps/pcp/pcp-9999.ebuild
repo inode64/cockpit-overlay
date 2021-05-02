@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=5
+EAPI=7
 PYTHON_COMPAT=(python{2_7,3_3})
 inherit user eutils python-any-r1
 
@@ -17,17 +17,17 @@ fi
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
-IUSE="+ssp +pie +threads +infiniband +discovery systemd X qt4 python +papi +perfevent +manager webapi doc"
+IUSE="+ssp +pie threads infiniband discovery systemd X qt4 python papi perfevent manager webapi doc"
 
-DEPEND="systemd? ( sys-apps/systemd )
+DEPEND=" systemd? ( sys-apps/systemd )
 X? ( x11-libs/libXt )
 qt4? ( dev-qt/qtcore:4 )
 python? ( ${PYTHON_DEPS} )
 perfevent? ( dev-libs/libpfm )
 papi? ( dev-libs/papi )
 discovery? ( net-dns/avahi[dbus] )
-webapi? ( net-libs/libmicrohttpd )"
-#doc? ( app-doc/xmlto ) 
+webapi? ( net-libs/libmicrohttpd[messages] )"
+#doc? ( app-doc/xmlto )
 RDEPEND="${DEPEND}"
 
 pkg_setup(){
@@ -49,7 +49,7 @@ pkg_setup(){
 }
 
 src_prepare() {
-	epatch_user
+	eapply_user
 }
 src_configure() {
 	# Setting xmlto as default documentation generator
@@ -58,6 +58,7 @@ src_configure() {
 	# Configuration flags
 	local myconf="\
 		--localstatedir=${ROOT}/var \
+		--without-dstat-symlink \
 		$(use_enable ssp) \
 		$(use_enable pie) \
 		$(use_with threads) \
@@ -82,5 +83,5 @@ src_compile(){
 
 src_install() {
 	DIST_ROOT=${D} emake -j1 install
-	dodoc CHANGELOG README
+	dodoc CHANGELOG README.md
 }

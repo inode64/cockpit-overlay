@@ -3,9 +3,6 @@
 
 EAPI=7
 
-inherit acct-user
+inherit acct-group
 
-ACCT_USER_ID=971
-ACCT_USER_GROUPS=( cockpit-wsinstance )
-
-acct-user_add_deps
+ACCT_GROUP_ID=969

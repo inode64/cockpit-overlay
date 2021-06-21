@@ -5,7 +5,7 @@ EAPI=7
 
 inherit acct-user
 
-ACCT_USER_ID=971
-ACCT_USER_GROUPS=( cockpit-wsinstance )
+ACCT_USER_ID=972
+ACCT_USER_GROUPS=( cockpit-ws )
 
 acct-user_add_deps

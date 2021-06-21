@@ -20,7 +20,7 @@ fi
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
-IUSE="debug +doc firewall +networkmanager pcp selinux udisks"
+IUSE="debug +doc firewalld +networkmanager pcp selinux udisks"
 
 BDEPEND="
 	>=app-crypt/mit-krb5-1.11
@@ -39,7 +39,7 @@ DEPEND="
 	dev-python/dbus-python
 	net-libs/nodejs[npm]
 	networkmanager? (
-		firewall? (
+		firewalld? (
 			net-firewall/firewalld
 		)
 		net-misc/networkmanager[policykit,systemd]
@@ -89,9 +89,10 @@ src_install(){
     	rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-selinux.metainfo.xml
     fi
 
-    rm -rf "${D}"/usr/share/cockpit/packagekit
+    rm -rf "${D}"/usr/share/cockpit/{packagekit,playground,sosreport}
+    rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
 
-	ewarn "Installing experimetal pam configuration file"
+	ewarn "Installing experimental pam configuration file"
 	ewarn "use at your own risk"
 	newpamd "${FILESDIR}/cockpit.pam" cockpit
 	dodoc README.md AUTHORS

@@ -1,14 +1,14 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI=7
 
-inherit user pam autotools eutils git-r3
+inherit autotools eutils pam systemd
 
+KEYWORDS="~amd64 ~x86"
 DESCRIPTION="Server Administration Web Interface "
 HOMEPAGE="http://cockpit-project.org/"
-SRC_URI=""
+SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.xz"
 
 if [[ ${PV} == 9999* ]] ; then
 	inherit git-r3
@@ -18,42 +18,49 @@ fi
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
-IUSE="+debug test +maintainer-mode +pcp doc"
+IUSE="debug +doc firewall +networkmanager pcp selinux udisks"
 
-REQUIRED_USE="maintainer-mode debug"
-
+BDEPEND="
+	>=app-crypt/mit-krb5-1.11
+	>=dev-libs/glib-2.50
+	>=dev-libs/json-glib-1.4
+	>=net-libs/gnutls-3.6.0
+	>=net-libs/libssh-0.8.5[server]
+	>=sys-apps/systemd-235[policykit]
+	>=sys-auth/polkit-0.105[systemd]
+	doc? (
+		app-text/xmlto
+	)
+"
 DEPEND="
-	>=net-libs/libssh-0.9.5[server]
-	>=dev-libs/json-glib-1.6.0
-	>=sys-auth/polkit-0.117
-	sys-fs/lvm2
-	app-crypt/mit-krb5
-	dev-util/gdbus-codegen
-	pcp? ( sys-apps/pcp )
+	dev-libs/libpwquality
+	dev-python/dbus-python
 	net-libs/nodejs[npm]
-	app-admin/sudo"
-#doc? ( app-doc/xmlto )"
+	networkmanager? (
+		firewall? (
+			net-firewall/firewalld
+		)
+		net-misc/networkmanager[policykit,systemd]
+	)
+	pcp? (
+		sys-apps/pcp
+	)
+	sys-apps/accountsservice[systemd]
+	udisks? (
+		sys-fs/udisks[lvm,systemd]
+	)
+"
 
 RDEPEND="${DEPEND}
-	>=virtual/libgudev-232
+	acct-group/cockpit-ws
+	acct-group/cockpit-wsinstance
+	acct-user/cockpit-ws
+	acct-user/cockpit-wsinstance
+	dev-libs/libgudev
 	net-libs/glib-networking[ssl]
-	acct-user/cockpit-wsinstance"
+	virtual/krb5
+"
 
-pkg_setup(){
-	if [ -z "$(egetent group cockpit-ws 2>/dev/null)" ]; then
-		enewgroup cockpit-ws
-		einfo
-		einfo "The group 'cockpit-ws' has been created. Any users you add to this"
-		einfo "group have access to files created by the daemons."
-		einfo
-	fi
-	if [ -z "$(egetent passwd cockpit-ws 2>/dev/null)" ]; then
-		enewuser cockpit-ws -1 -1 /var/lib/cockpit cockpit-ws
-		einfo
-		einfo "The user 'cockpit-ws' has been created."
-		einfo
-	fi
-}
 src_prepare() {
 	eapply_user
 	eautoreconf
@@ -61,19 +68,27 @@ src_prepare() {
 
 src_configure() {
 	local myconf=(
-		$(use_enable maintainer-mode)
 		$(use_enable debug)
 		$(use_enable pcp)
 		$(use_enable doc)
-		"--with-pamdir=/lib64/security "
-		"--with-cockpit-user=cockpit-ws "
-		"--with-cockpit-ws-instance-user=cockpit-wsinstance "
-		"--with-cockpit-group=cockpit-ws "
+		"--with-pamdir=/lib64/security"
+		"--with-cockpit-user=cockpit-ws"
+		"--with-cockpit-ws-instance-user=cockpit-wsinstance"
+		"--with-cockpit-group=cockpit-ws"
 		"--localstatedir=${ROOT}/var")
 	econf "${myconf[@]}"
 }
+
 src_install(){
-	emake DESTDIR="${D}"  install || die "emake install failed"
+	emake DESTDIR="${D}" install || die "emake install failed"
+
+	if ! use selinux ; then
+    	rm -rf "${D}"/usr/share/cockpit/selinux
+    	rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-selinux.metainfo.xml
+    fi
+
+    rm -rf "${D}"/usr/share/cockpit/packagekit
+
 	ewarn "Installing experimetal pam configuration file"
 	ewarn "use at your own risk"
 	newpamd "${FILESDIR}/cockpit.pam" cockpit

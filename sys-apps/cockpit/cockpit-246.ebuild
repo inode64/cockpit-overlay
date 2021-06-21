@@ -5,15 +5,17 @@ EAPI=7
 
 inherit autotools eutils pam systemd
 
-KEYWORDS="~amd64 ~x86"
 DESCRIPTION="Server Administration Web Interface "
 HOMEPAGE="http://cockpit-project.org/"
-SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.xz"
 
 if [[ ${PV} == 9999* ]] ; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/cockpit-project/cockpit.git"
 	KEYWORDS=""
+	SRC_URI=""
+else
+	KEYWORDS="~amd64 ~x86"
+	SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.xz"
 fi
 
 LICENSE="LGPL-2.1+"
@@ -93,4 +95,11 @@ src_install(){
 	ewarn "use at your own risk"
 	newpamd "${FILESDIR}/cockpit.pam" cockpit
 	dodoc README.md AUTHORS
+}
+
+pkg_postinst() {
+	elog ""
+	elog "To enable Cockpit run:"
+	elog " - systemctl enable --now cockpit.socket"
+	elog ""
 }

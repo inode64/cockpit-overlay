@@ -27,7 +27,7 @@ BDEPEND="
 	>=net-libs/gnutls-3.6.0
 	>=net-libs/libssh-0.8.5[server]
 	>=sys-apps/systemd-235[policykit]
-	>=sys-auth/polkit-0.105
+	>=sys-auth/polkit-0.105[systemd]
 	doc? (
 		app-text/xmlto
 	)

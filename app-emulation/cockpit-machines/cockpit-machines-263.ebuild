@@ -13,7 +13,7 @@ if [[ ${PV} == 9999* ]] ; then
 	SRC_URI=""
 else
 	KEYWORDS="~amd64 ~x86"
-	SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.gz"
+	SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.xz"
 fi
 
 LICENSE="LGPL-2.1"

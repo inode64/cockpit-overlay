@@ -1,14 +1,14 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 PYTHON_COMPAT=(python3_{7..10})
 inherit systemd distutils-r1
 
 DESCRIPTION="Performance Co-Pilot, system performance and analysis framework"
 HOMEPAGE="http://pcp.io"
 
-if [[ ${PV} == 9999* ]] ; then
+if [[ ${PV} == 9999* ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/performancecopilot/pcp.git"
 	KEYWORDS=""
@@ -58,20 +58,20 @@ src_prepare() {
 
 src_configure() {
 	local myconf=(
-		"--localstatedir=${ROOT}/var"
+		"--localstatedir=${EPREFIX}/var"
 		"--without-dstat-symlink"
 		"--without-python"
 		$(use_enable pie)
 		$(use_enable ssp)
 		$(use_with discovery)
 		$(use_with infiniband)
-		$(use_with json pmdajson )
-		$(use_with nutcracker pmdanutcracker )
+		$(use_with json pmdajson)
+		$(use_with nutcracker pmdanutcracker)
 		$(use_with perfevent)
-		$(use_with podman pmdapodman )
+		$(use_with podman pmdapodman)
 		$(use_with qt5 qt)
 		$(use_with selinux)
-		$(use_with snmp pmdasnmp )
+		$(use_with snmp pmdasnmp)
 		$(use_with systemd)
 		$(use_with threads)
 		$(use_with X x)
@@ -80,12 +80,14 @@ src_configure() {
 	econf "${myconf[@]}"
 }
 
-src_compile(){
+src_compile() {
 	emake
 }
 
 src_install() {
 	DIST_ROOT="${D}" emake install
+
+	rm -rf "${D}/var/lib/pcp/testsuite"
 }
 
 pkg_postinst() {

@@ -1,14 +1,13 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit autotools eutils pam systemd
+inherit autotools pam
 
 DESCRIPTION="Server Administration Web Interface "
-HOMEPAGE="http://cockpit-project.org/"
-
-if [[ ${PV} == 9999* ]] ; then
+HOMEPAGE="https://cockpit-project.org/"
+if [[ ${PV} == 9999* ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/cockpit-project/cockpit.git"
 	KEYWORDS=""
@@ -17,10 +16,11 @@ else
 	KEYWORDS="~amd64 ~x86"
 	SRC_URI="https://github.com/cockpit-project/${PN}/releases/download/${PV}/${P}.tar.xz"
 fi
+SRC_URI="${SRC_URI} https://www.gentoo.org/assets/img/logo/gentoo-logo.png"
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
-IUSE="debug +doc firewalld +networkmanager pcp selinux udisks"
+IUSE="+doc +networkmanager debug firewalld pcp selinux tuned udisks"
 
 BDEPEND="
 	>=app-crypt/mit-krb5-1.11
@@ -45,12 +45,16 @@ DEPEND="
 		net-misc/networkmanager[policykit,systemd]
 	)
 	pcp? (
-		sys-apps/pcp
+		app-metrics/pcp
 	)
 	sys-apps/accountsservice[systemd]
 	udisks? (
 		sys-fs/udisks[lvm,systemd]
 	)
+	tuned? (
+		sys-apps/tuned
+	)
+	virtual/libcrypt:=
 "
 
 RDEPEND="${DEPEND}
@@ -58,6 +62,7 @@ RDEPEND="${DEPEND}
 	acct-group/cockpit-wsinstance
 	acct-user/cockpit-ws
 	acct-user/cockpit-wsinstance
+	app-crypt/sscg
 	dev-libs/libgudev
 	net-libs/glib-networking[ssl]
 	virtual/krb5
@@ -77,25 +82,37 @@ src_configure() {
 		"--with-cockpit-user=cockpit-ws"
 		"--with-cockpit-ws-instance-user=cockpit-wsinstance"
 		"--with-cockpit-group=cockpit-ws"
-		"--localstatedir=${ROOT}/var")
+		"--localstatedir=${EPREFIX}/var")
 	econf "${myconf[@]}"
 }
 
-src_install(){
+src_install() {
 	emake DESTDIR="${D}" install || die "emake install failed"
 
-	if ! use selinux ; then
-    	rm -rf "${D}"/usr/share/cockpit/selinux
-    	rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-selinux.metainfo.xml
-    fi
+	if ! use selinux; then
+		rm -rf "${D}"/usr/share/cockpit/selinux
+		rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-selinux.metainfo.xml
+	fi
 
-    rm -rf "${D}"/usr/share/cockpit/{packagekit,playground,sosreport}
-    rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+	rm -rf "${D}"/usr/share/cockpit/{packagekit,playground,sosreport}
+	rm -rf "${D}"/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+
+	insinto /usr/share/cockpit/branding/gentoo
+	doins "${FILESDIR}/branding.css"
+	newins "${DISTDIR}/gentoo-logo.png" logo.png
+	newins "${DISTDIR}/gentoo-logo.png" apple-touch-icon.png
+	newins "${DISTDIR}/gentoo-logo.png" favicon.ico
+
+	# Remove branding from others distros
+	rm -rf "${D}"/usr/share/cockpit/branding/{arch,centos,debian,fedora,opensuse,rhel,scientific,ubuntu}
 
 	ewarn "Installing experimental pam configuration file"
 	ewarn "use at your own risk"
 	newpamd "${FILESDIR}/cockpit.pam" cockpit
 	dodoc README.md AUTHORS
+
+    # Required for store self-signed certificates
+	keepdir /etc/cockpit/ws-certs.d/
 }
 
 pkg_postinst() {

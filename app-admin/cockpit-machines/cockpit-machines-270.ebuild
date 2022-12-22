@@ -1,7 +1,7 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=8
+EAPI=7
 
 DESCRIPTION="This is the Cockpit user interface for virtual machines"
 HOMEPAGE="http://cockpit-project.org/"
@@ -26,7 +26,7 @@ DEPEND="
 "
 
 RDEPEND="${DEPEND}
-	>=sys-apps/cockpit-${PV}
+	>=app-admin/cockpit-${PV}
 	app-emulation/libvirt-dbus
 	app-emulation/libvirt[firewalld,policykit]
 	app-emulation/virt-manager[policykit]
